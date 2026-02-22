@@ -40,7 +40,7 @@ The vault path is configured via the `VAULT_PATH` environment variable (defaults
 
 ### MCP Tools (`src/tools/`)
 
-All tools are registered in `src/tools/index.ts` via a single `registerAllTools()` function with Zod input schemas. 13 tools: `traverse_links`, `find_backlinks`, `find_orphans`, `find_broken_links`, `resolve_wikilink`, `vault_search`, `find_by_tag`, `vault_stats`, `rebuild_graph`, `batch_resolve`, `batch_find_backlinks`, `find_untagged`, `find_similar_names`.
+All tools are registered in `src/tools/index.ts` via a single `registerAllTools()` function with Zod input schemas. 12 tools: `traverse_links`, `find_backlinks`, `find_orphans`, `find_broken_links`, `resolve_wikilink`, `vault_search`, `find_by_tag`, `vault_stats`, `batch_resolve`, `batch_find_backlinks`, `find_untagged`, `find_similar_names`.
 
 ### Tests (`test/`)
 

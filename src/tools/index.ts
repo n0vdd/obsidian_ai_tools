@@ -9,7 +9,6 @@ import {
   missingNotesBySource,
   resolve,
   stats,
-  rebuildGraph,
   batchResolve,
   type GraphState,
 } from "../graph.js";
@@ -358,24 +357,6 @@ export function registerAllTools(server: McpServer, state: GraphState) {
     (input) => jsonResult(stats(state, mapFilterOpts(input))),
   );
 
-  server.registerTool(
-    "rebuild_graph",
-    {
-      description:
-        "Rebuild the in-memory vault graph by re-scanning all notes from disk. Use after files have been added, renamed, or deleted outside of the tools.",
-    },
-    () => {
-      const before = state.notes.size;
-      rebuildGraph(state);
-      const s = stats(state);
-      return jsonResult({
-        status: "rebuilt",
-        notes_before: before,
-        notes_after: s.total_notes,
-        missing_links: s.missing_links,
-      });
-    },
-  );
 
   server.registerTool(
     "batch_resolve",

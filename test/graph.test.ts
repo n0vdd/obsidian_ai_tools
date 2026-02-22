@@ -2,7 +2,6 @@ import { describe, test, expect, beforeAll } from "vitest";
 import { join } from "path";
 import {
   buildGraph,
-  rebuildGraph,
   resolve,
   backlinks,
   batchFindBacklinks,
@@ -844,27 +843,6 @@ describe("findUntagged new filters", () => {
   });
 });
 
-describe("rebuildGraph", () => {
-  test("preserves object identity after rebuild", () => {
-    const ref = state;
-    rebuildGraph(state);
-    expect(state).toBe(ref);
-    expect(state.notes.size).toBeGreaterThan(0);
-  });
-
-  test("graph is functional after rebuild", () => {
-    rebuildGraph(state);
-    const note = resolve("Note A", state);
-    expect(note).not.toBeNull();
-    expect(note!.name).toBe("Note A");
-
-    const result = backlinks("Note B", state);
-    expect(result.results.length).toBeGreaterThan(0);
-
-    const s = stats(state);
-    expect(s.total_notes).toBe(8);
-  });
-});
 
 describe("Note mtime field", () => {
   test("notes have mtime as Date", () => {

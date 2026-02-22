@@ -1,6 +1,6 @@
 # VaultKit
 
-TypeScript MCP server for Obsidian vaults. Parses Obsidian-flavored markdown (wikilinks, embeds, frontmatter, inline #tags), builds an in-memory link graph, and exposes 13 tools over stdio.
+TypeScript MCP server for Obsidian vaults. Parses Obsidian-flavored markdown (wikilinks, embeds, frontmatter, inline #tags), builds an in-memory link graph, and exposes 12 tools over stdio.
 
 ## Features
 
@@ -10,7 +10,6 @@ TypeScript MCP server for Obsidian vaults. Parses Obsidian-flavored markdown (wi
 - **Rich filtering** — folder, tags, date range, regex exclude pattern, pagination on every list tool
 - **Batch operations** — resolve or find backlinks for up to 50 notes in a single call
 - **Near-duplicate detection** — Levenshtein distance matching for similar note names
-- **Instant rebuild** — re-scan the vault on demand without restarting the server
 
 ## Tools
 
@@ -45,7 +44,6 @@ TypeScript MCP server for Obsidian vaults. Parses Obsidian-flavored markdown (wi
 | ---------------------- | ----------------------------------------------------------------- |
 | `batch_find_backlinks` | Find backlinks for multiple notes in a single call                |
 | `vault_stats`          | Return vault-wide statistics (notes, tags, orphans, broken links) |
-| `rebuild_graph`        | Re-scan all notes from disk and rebuild the graph                 |
 
 ## Quick start
 
@@ -131,7 +129,7 @@ MCP client → index.ts (McpServer) → tools/index.ts → graph.ts / search.ts 
 | Module           | Role                                                                                                      |
 | ---------------- | --------------------------------------------------------------------------------------------------------- |
 | `index.ts`       | Entry point: reads `VAULT_PATH`, builds graph, registers tools, connects stdio transport                  |
-| `tools/index.ts` | All 13 MCP tool registrations with Zod input schemas                                                      |
+| `tools/index.ts` | All 12 MCP tool registrations with Zod input schemas                                                      |
 | `graph.ts`       | In-memory link graph (`Map`/`Set`), BFS traversal, backlinks, orphans, fuzzy resolution, batch operations |
 | `search.ts`      | Content search (substring/regex/whole-word), tag lookup, untagged detection, Levenshtein similarity       |
 | `filter.ts`      | Shared filtering (folder, tags, dates, exclude patterns) and pagination logic                             |

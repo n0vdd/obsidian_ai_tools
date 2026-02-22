@@ -47,14 +47,6 @@ export function buildGraph(vaultPath: string): GraphState {
   return { vaultPath, notes, forward, backward, missing, fuzzyIndex };
 }
 
-export function rebuildGraph(state: GraphState): void {
-  const fresh = buildGraph(state.vaultPath);
-  state.notes = fresh.notes;
-  state.forward = fresh.forward;
-  state.backward = fresh.backward;
-  state.missing = fresh.missing;
-  state.fuzzyIndex = fresh.fuzzyIndex;
-}
 
 function buildAdjacency(notes: Map<string, Note>) {
   const forward = new Map<string, Set<string>>();
