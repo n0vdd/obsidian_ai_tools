@@ -1,8 +1,9 @@
 {
   "mcpServers": {
     "vault-kit": {
-      "command": "mix",
-      "args": ["run", "--no-halt"],
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "/home/user/Work/obsidian_ai_tools",
       "env": {
         "VAULT_PATH": "/home/user/Dropbox/notes"
       }
