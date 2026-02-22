@@ -2,13 +2,36 @@
   "name": "vault-kit",
   "version": "1.0.0",
   "description": "MCP server for querying and navigating an Obsidian vault",
+  "author": "n0vdd",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/n0vdd/vault-kit.git"
+  },
+  "homepage": "https://github.com/n0vdd/vault-kit#readme",
+  "bugs": {
+    "url": "https://github.com/n0vdd/vault-kit/issues"
+  },
+  "keywords": [
+    "mcp",
+    "obsidian",
+    "vault",
+    "wikilinks",
+    "knowledge-graph",
+    "model-context-protocol"
+  ],
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"*.{json,js,md}\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" \"*.{json,js,md}\"",
+    "check:unused": "knip"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
@@ -16,8 +39,15 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^22.0.0",
+    "eslint": "^10.0.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-sonarjs": "^4.0.0",
+    "knip": "^5.85.0",
+    "prettier": "^3.8.1",
     "typescript": "^5.6.0",
+    "typescript-eslint": "^8.56.0",
     "vitest": "^2.0.0"
   }
 }

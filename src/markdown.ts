@@ -2,14 +2,12 @@ import type { Wikilink, Heading, Checkbox } from "./types.js";
 import YAML from "yaml";
 
 const WIKILINK_RE = /\[\[([^\]#|]+)(?:#([^\]|]+))?(?:\|([^\]]+))?\]\]/g;
+const EMBED_FULL_RE = /!\[\[([^\]#|]+)(?:#([^\]|]+))?(?:\|([^\]]+))?\]\]/g;
 const EMBED_RE = /!\[\[([^\]]+)\]\]/g;
-const HEADING_RE = /^(#{1,6})\s+(.+)$/gm;
-const CHECKBOX_RE = /^(\s*)- \[([ xX])\]\s+(.+)$/gm;
-const TAG_RE = /(?:^|(?<=\s))#([a-zA-Z][\w/\-]*)(?=\s|$)/gm;
+const TAG_RE = /(?:^|(?<=\s))#([a-zA-Z][\w/-]*)(?=\s|$)/gm;
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?\r?\n)---\r?\n/;
 
-export function extractWikilinks(content: string): Wikilink[] {
-  const lines = content.split(/\r?\n/);
+export function extractWikilinks(lines: string[]): Wikilink[] {
   const embeds = extractEmbeds(lines);
   const links = extractPlainLinks(lines);
   return [...embeds, ...links].sort((a, b) => a.line - b.line);
@@ -18,31 +16,15 @@ export function extractWikilinks(content: string): Wikilink[] {
 function extractEmbeds(lines: string[]): Wikilink[] {
   const results: Wikilink[] = [];
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
     const lineNum = i + 1;
-    const re = new RegExp(EMBED_RE.source, "g");
-    let match;
-    while ((match = re.exec(line)) !== null) {
-      const target = match[1];
-      const wlRe = new RegExp(WIKILINK_RE.source);
-      const wlMatch = wlRe.exec(`[[${target}]]`);
-      if (wlMatch) {
-        results.push({
-          name: wlMatch[1].trim(),
-          heading: wlMatch[2] || null,
-          alias: wlMatch[3] || null,
-          line: lineNum,
-          embed: true,
-        });
-      } else {
-        results.push({
-          name: target.trim(),
-          heading: null,
-          alias: null,
-          line: lineNum,
-          embed: true,
-        });
-      }
+    for (const match of lines[i].matchAll(EMBED_FULL_RE)) {
+      results.push({
+        name: match[1].trim(),
+        heading: match[2] || null,
+        alias: match[3] || null,
+        line: lineNum,
+        embed: true,
+      });
     }
   }
   return results;
@@ -50,13 +32,10 @@ function extractEmbeds(lines: string[]): Wikilink[] {
 
 function extractPlainLinks(lines: string[]): Wikilink[] {
   const results: Wikilink[] = [];
-  const embedRe = new RegExp(EMBED_RE.source, "g");
   for (let i = 0; i < lines.length; i++) {
-    const cleaned = lines[i].replace(embedRe, "");
+    const cleaned = lines[i].replace(EMBED_RE, "");
     const lineNum = i + 1;
-    const re = new RegExp(WIKILINK_RE.source, "g");
-    let match;
-    while ((match = re.exec(cleaned)) !== null) {
+    for (const match of cleaned.matchAll(WIKILINK_RE)) {
       results.push({
         name: match[1].trim(),
         heading: match[2] || null,
@@ -70,12 +49,12 @@ function extractPlainLinks(lines: string[]): Wikilink[] {
 }
 
 export function extractFrontmatter(
-  content: string
+  content: string,
 ): Record<string, unknown> | null {
   const match = FRONTMATTER_RE.exec(content);
   if (!match) return null;
   try {
-    const parsed = YAML.parse(match[1]);
+    const parsed: unknown = YAML.parse(match[1]);
     if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
       return parsed as Record<string, unknown>;
     }
@@ -85,10 +64,9 @@ export function extractFrontmatter(
   }
 }
 
-export function extractHeadings(content: string): Heading[] {
-  const lines = content.split(/\r?\n/);
+export function extractHeadings(lines: string[]): Heading[] {
   const results: Heading[] = [];
-  const re = new RegExp(HEADING_RE.source);
+  const re = /^(#{1,6})\s+(.+)$/;
   for (let i = 0; i < lines.length; i++) {
     const match = re.exec(lines[i]);
     if (match) {
@@ -102,10 +80,9 @@ export function extractHeadings(content: string): Heading[] {
   return results;
 }
 
-export function extractCheckboxes(content: string): Checkbox[] {
-  const lines = content.split(/\r?\n/);
+export function extractCheckboxes(lines: string[]): Checkbox[] {
   const results: Checkbox[] = [];
-  const re = new RegExp(CHECKBOX_RE.source);
+  const re = /^(\s*)- \[([ xX])\]\s+(.+)$/;
   for (let i = 0; i < lines.length; i++) {
     const match = re.exec(lines[i]);
     if (match) {
@@ -120,17 +97,14 @@ export function extractCheckboxes(content: string): Checkbox[] {
   return results;
 }
 
-export function extractInlineTags(content: string): string[] {
-  const body = stripFrontmatter(content);
-  const lines = body.split(/\r?\n/);
+export function extractInlineTags(lines: string[]): string[] {
+  const body = stripFrontmatterLines(lines);
   const seen = new Set<string>();
   const results: string[] = [];
 
-  for (const line of lines) {
+  for (const line of body) {
     if (/^\s*#{1,6}\s+/.test(line)) continue;
-    const re = new RegExp(TAG_RE.source, "gm");
-    let match;
-    while ((match = re.exec(line)) !== null) {
+    for (const match of line.matchAll(TAG_RE)) {
       const tag = match[1];
       if (!seen.has(tag)) {
         seen.add(tag);
@@ -141,6 +115,12 @@ export function extractInlineTags(content: string): string[] {
   return results;
 }
 
-export function stripFrontmatter(content: string): string {
-  return content.replace(FRONTMATTER_RE, "");
+export function stripFrontmatterLines(lines: string[]): string[] {
+  if (lines.length === 0 || lines[0] !== "---") return lines;
+  for (let i = 1; i < lines.length; i++) {
+    if (lines[i] === "---" || lines[i] === "---\r") {
+      return lines.slice(i + 1);
+    }
+  }
+  return lines;
 }

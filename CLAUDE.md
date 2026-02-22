@@ -14,6 +14,11 @@ npm run build             # Compile TypeScript
 npm test                  # Run all tests (vitest)
 npm run test:watch        # Run tests in watch mode
 npm start                 # Start the MCP server (requires build first)
+npm run lint              # Run ESLint
+npm run lint:fix          # Run ESLint with auto-fix
+npm run format            # Format code with Prettier
+npm run format:check      # Check formatting
+npm run check:unused      # Find unused exports/deps with Knip
 ```
 
 The vault path is configured via the `VAULT_PATH` environment variable (defaults to `~/Dropbox/notes`).
@@ -25,14 +30,16 @@ The vault path is configured via the `VAULT_PATH` environment variable (defaults
 ### Core Modules (`src/`)
 
 - **`types.ts`** — Interfaces: `Note`, `Wikilink`, `Heading`, `Checkbox`.
-- **`markdown.ts`** — Pure parsing functions for wikilinks (`[[Note]]`, `[[Note#Heading]]`, `[[Note|Alias]]`, `![[Embed]]`), YAML frontmatter, headings, checkboxes, and inline tags. Uses 6 regexes.
-- **`vault.ts`** — File I/O layer. `scanVault()` finds `.md` files (excluding `.obsidian`, `smart-chats`, `templates`, `.claude`, `Excalidraw`, `.trash`, `TagsRoutes/reports/`). `readNote()` reads notes into `Note` objects.
-- **`graph.ts`** — In-memory link graph built on startup using `Map`/`Set`. Stores forward/backward adjacency maps and missing (broken) links. Provides BFS traversal, backlink lookup, orphan detection, fuzzy name resolution (case-insensitive, ignores `-_`), and search.
+- **`markdown.ts`** — Pure parsing functions for wikilinks (`[[Note]]`, `[[Note#Heading]]`, `[[Note|Alias]]`, `![[Embed]]`), YAML frontmatter, headings, checkboxes, and inline tags. Uses 4 core regexes.
+- **`vault.ts`** — File I/O layer. `scanVault()` finds `.md` files (excluding `.obsidian`, `smart-chats`, `templates`, `.claude`, `Excalidraw`, `.trash`, `TagsRoutes/reports/`). Handles symlink safety (circular symlink detection via `realpathSync`). `readNote()` reads notes into `Note` objects.
+- **`graph.ts`** — In-memory link graph built on startup using `Map`/`Set`. Stores forward/backward adjacency maps and missing (broken) links. Provides BFS traversal, backlink lookup, orphan detection, fuzzy name resolution (case-insensitive, ignores `-_`, strips diacritics via NFD normalization), and batch operations (resolve/backlinks for up to 50 notes).
+- **`search.ts`** — Content search (substring, whole-word, regex), tag lookup (`findByTag`), untagged note detection (`findUntagged`), and Levenshtein-based similar name matching (`findSimilarNames`).
+- **`filter.ts`** — Shared filtering logic used by graph and search modules. Compiles filter options (folder, exclude folders, exclude pattern, date range, tags, exclude tags) into predicates. Also provides pagination (`paginate()`).
 - **`index.ts`** — Entry point: reads `VAULT_PATH`, builds graph, registers tools, connects stdio transport.
 
 ### MCP Tools (`src/tools/`)
 
-Each tool module exports a `register*` function that calls `server.registerTool()` with a Zod input schema and a callback. 8 tools: `traverse_links`, `find_backlinks`, `find_orphans`, `find_missing_notes`, `resolve_wikilink`, `vault_search`, `read_frontmatter`, `vault_stats`.
+All tools are registered in `src/tools/index.ts` via a single `registerAllTools()` function with Zod input schemas. 13 tools: `traverse_links`, `find_backlinks`, `find_orphans`, `find_broken_links`, `resolve_wikilink`, `vault_search`, `find_by_tag`, `vault_stats`, `rebuild_graph`, `batch_resolve`, `batch_find_backlinks`, `find_untagged`, `find_similar_names`.
 
 ### Tests (`test/`)
 
@@ -44,3 +51,7 @@ Tests use vitest and run against fixtures in `test/fixtures/`. No server startup
 - **zod** (^3.x) — Schema validation for tool inputs
 - **yaml** (^2.x) — YAML frontmatter parsing
 - **vitest** (^2.x) — Test runner (dev only)
+- **typescript** (^5.x) + **@types/node** — TypeScript compiler and Node.js type definitions (dev only)
+- **eslint** (^10.x) + **@eslint/js** + **typescript-eslint** + **eslint-plugin-sonarjs** + **eslint-config-prettier** — Linting with cognitive complexity checks (dev only)
+- **prettier** (^3.x) — Code formatting (dev only)
+- **knip** (^5.x) — Unused export/dependency detection (dev only)
